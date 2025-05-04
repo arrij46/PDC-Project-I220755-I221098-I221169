@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <fstream>
 #include <sstream>
+#include <iomanip>
 using namespace std;
 
 // Structure to represent a weighted edge
@@ -364,16 +365,60 @@ public:
 
     // Print the current shortest path distances
     void print_distances() {
-        cout << "\nCurrent shortest path distances from source " << source_vertex << ":\n";
+        cout << "\nCurrent shortest paths from source " << source_vertex << ":\n";
+        cout << "----------------------------------------\n";
+        cout << "Vertex | Distance | Parent\n";
+        cout << "----------------------------------------\n";
+        
         for (int i = 0; i < num_vertices; i++) {
-            cout << "Vertex " << i << ": ";
+            cout << setw(6) << i << " | ";
             if (distances[i] == numeric_limits<int>::max())
-                cout << "INF\n";
+                cout << setw(8) << "INF" << " | ";
             else
-                cout << distances[i] << "\n";
+                cout << setw(8) << distances[i] << " | ";
+                
+            if (parents[i] == -1)
+                cout << setw(6) << "-" << "\n";
+            else
+                cout << setw(6) << parents[i] << "\n";
         }
+        cout << "----------------------------------------\n";
+    }
+
+    void print_tree_structure() {
+        cout << "\nShortest Path Tree from source " << source_vertex << ":\n";
+        cout << "----------------------------------------\n";
+        
+        // Helper lambda to print indentation
+        auto print_indent = [](int depth) {
+            for(int i = 0; i < depth; i++) 
+                cout << "    ";
+        };
+        
+        // Helper function to recursively print tree
+        function<void(int, int)> print_subtree = [&](int vertex, int depth) {
+            print_indent(depth);
+            cout << "└── " << vertex;
+            
+            if (distances[vertex] == numeric_limits<int>::max())
+                cout << " (INF)\n";
+            else
+                cout << " (" << distances[vertex] << ")\n";
+                
+            // Find all children (vertices that have this vertex as parent)
+            for (int i = 0; i < num_vertices; i++) {
+                if (parents[i] == vertex) {
+                    print_subtree(i, depth + 1);
+                }
+            }
+        };
+        
+        // Start printing from source vertex
+        print_subtree(source_vertex, 0);
+        cout << "----------------------------------------\n";
     }
     
+
     // Print the shortest path to a vertex
     void print_path(int v) {
         if (distances[v] == numeric_limits<int>::max()) {
@@ -430,68 +475,49 @@ public:
 };
 
 int main() {
-    int source_vertex = 11367;
+    int source_vertex = 0;
     
     // Create the dynamic SSSP object
     DynamicSSSP* sssp = new DynamicSSSP(0, source_vertex);
     
-    // First, try to load from file
-    string filename = "Data/data.txt";
-    cout << "Attempting to load graph from file: " << filename << "\n";
+    // Load the initial graph
+    string graph_filename = "Data/graph.txt";
+    cout << "Loading initial graph from: " << graph_filename << "\n";
     
-    bool loaded = sssp->load_graph(filename);
-    
-    // If file loading fails, create a test graph
+    bool loaded = sssp->load_graph(graph_filename);
     if (!loaded) {
-        cout << "Failed to load graph from file. Creating test graph instead.\n";
-        sssp->create_test_graph();
+        cerr << "Failed to load initial graph. Exiting.\n";
+        delete sssp;
+        return 1;
     }
     
     // Compute initial shortest paths
     cout << "\nComputing initial shortest paths from source vertex " << source_vertex << "...\n";
     sssp->compute_initial_sssp();
     sssp->print_distances();
+    sssp->print_tree_structure();
     
-    // Simulate some edge updates
-    cout << "\n=== Simulating Edge Updates ===\n";
+    // Read and process changes from changes.txt
+    /*
+    string changes_filename = "Data/changes.txt";
+    ifstream changes_file(changes_filename);
     
-    // Decrease weight example
-    cout << "\n[1] Decreasing edge weight:\n";
-    sssp->update_edge_weight(0, 1, 1);
-    sssp->print_distances();
-    
-    // Increase weight example
-    cout << "\n[2] Increasing edge weight:\n";
-    sssp->update_edge_weight(0, 1, 10);
-    sssp->print_distances();
-    
-    // Print some paths
-    cout << "\n=== Shortest Paths ===\n";
-    int num_vertices = sssp->get_num_vertices();
-    for (int i = 0; i < min(5, num_vertices); i++) {
-        sssp->print_path(i);
+    if (!changes_file) {
+        cerr << "Error: Cannot open " << changes_filename << "\n";
+        delete sssp;
+        return 1;
     }
     
-    // Interactive mode for further updates
-    char response;
-    cout << "\nDo you want to perform more edge updates? (y/n): ";
-    cin >> response;
+    cout << "\nProcessing edge updates from " << changes_filename << "...\n";
     
-    while (response == 'y' || response == 'Y') {
-        int u, v, w;
-        cout << "Enter edge to update (source target new_weight): ";
-        if (!(cin >> u >> v >> w)) {
-            cout << "Invalid input, exiting interactive mode\n";
-            break;
-        }
-        
+    int u, v, w;
+    while (changes_file >> u >> v >> w) {
         sssp->update_edge_weight(u, v, w);
         sssp->print_distances();
-        
-        cout << "\nDo you want to perform more edge updates? (y/n): ";
-        cin >> response;
     }
     
+    changes_file.close();
+    */
     delete sssp;
     return 0;
 }
