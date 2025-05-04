@@ -498,7 +498,7 @@ int main() {
     sssp->print_tree_structure();
     
     // Read and process changes from changes.txt
-    /*
+    
     string changes_filename = "Data/changes.txt";
     ifstream changes_file(changes_filename);
     
@@ -510,14 +510,21 @@ int main() {
     
     cout << "\nProcessing edge updates from " << changes_filename << "...\n";
     
+    int num_changes;
+    changes_file >> num_changes;  // Read number of changes
+    
     int u, v, w;
-    while (changes_file >> u >> v >> w) {
+    for(int i = 0; i < num_changes; i++) {
+        changes_file >> u >> v >> w;
+        cout << "\nProcessing change " << (i+1) << "/" << num_changes 
+             << ": Edge (" << u << "," << v << ") -> weight " << w << "\n";
         sssp->update_edge_weight(u, v, w);
         sssp->print_distances();
+        sssp->print_tree_structure();
     }
     
     changes_file.close();
-    */
+    
     delete sssp;
     return 0;
 }
