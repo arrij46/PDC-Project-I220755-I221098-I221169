@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 # For converting MTX files to a simple graph format for Serial code
+input_file = "Data/soc-twitter-follows.mtx"  
+output_file = "Data/data.txt"
 
 import sys
 import re
@@ -96,8 +98,7 @@ def convert_mtx_to_graph(input_file, output_file):
 
 def main():
     
-    input_file = "wiki-RfA_Neutral.mtx"  
-    output_file = "data.txt"
+    
     
     if not os.path.exists(input_file):
         print(f"Error: Input file '{input_file}' does not exist.")

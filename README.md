@@ -21,3 +21,6 @@ gpmetis test.graph 2
 cat test.graph.part.2
 This tells you how each of the 5 nodes was assigned to either partition 0 or 1.
 
+To run
+makefile in MetisPartition
+then makefile in src
