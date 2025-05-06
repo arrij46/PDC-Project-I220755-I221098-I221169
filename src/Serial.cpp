@@ -2,7 +2,7 @@
 // g++ -o exe src/Serial.cpp
 // ./exe
 //#define graph_filename "Data/graph.txt"
-#define graph_filename "Data/data.txt"
+#define graph_filename "Data/graph.txt"
 #include <iostream>
 #include <vector>
 #include <queue>
