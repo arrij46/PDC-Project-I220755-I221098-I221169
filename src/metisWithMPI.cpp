@@ -86,7 +86,7 @@ public:
     bool load_partitions(const string &filename) {
         ifstream infile(filename);
         if (!infile) {
-            cerr << "Error opening partition file: " << filename << "\n";
+            cerr << "Error opening graph file: " << filename << " in partition loading by process "<<mpi_rank<<"\n";
             return false;
         }
 
@@ -171,7 +171,7 @@ public:
     bool load_graph(const string &filename) {
         ifstream infile(filename);
         if (!infile) {
-            cerr << "Error opening graph file: " << filename << "\n";
+            cerr << "Error opening graph file: " << filename << " in graph loading by process "<<mpi_rank<<"\n";
             return false;
         }
 
@@ -381,7 +381,45 @@ public:
             pass++;
         }
     }
+    void update_edge_weight(int u, int v, int new_weight)
+    {
+        // Note: adjustment will happen in the specific handlers
+        int u_idx = adjust_indices ? u - 1 : u;
+        int v_idx = adjust_indices ? v - 1 : v;
+        
+        // Find the current weight
+        int current_weight = -1;
+        for (const Edge &edge : outgoing_edges[u_idx])
+        {
+            if (edge.target == v_idx)
+            {
+                current_weight = edge.weight;
+                break;
+            }
+        }
 
+        if (current_weight == -1)
+        {
+            cerr << "Edge (" << u << "," << v << ") not found in graph\n";
+            return;
+        }
+
+        cout << "Updating edge (" << u << "," << v << ") from weight "
+             << current_weight << " to " << new_weight << endl;
+
+        if (new_weight < current_weight)
+        {
+            handle_edge_decrease(u, v, new_weight);
+        }
+        else if (new_weight > current_weight)
+        {
+            handle_edge_increase(u, v, new_weight);
+        }
+        else
+        {
+            cout << "No weight change, skipping update\n";
+        }
+    }
     // Handle edge weight decrease (modified for MPI)
     void handle_edge_decrease(int u, int v, int new_weight) {
         if (adjust_indices) {
@@ -615,8 +653,8 @@ int main(int argc, char* argv[]) {
 
     // Default values
     int source_vertex = 0;
-    string graph_filename = "MetisPartition/data.graph";
-    string partition_filename = "";
+    string graph_filename = "/mirror/project/MetisPartition/Data.graph";
+    string partition_filename = "/mirror/project/MetisPartition/Data.graph.part.3";
     bool adjust_indices = false;
     
     // Parse command line arguments (only rank 0)
@@ -727,7 +765,7 @@ int main(int argc, char* argv[]) {
 
     // Read and process changes from changes.txt (only rank 0 reads file)
     start = chrono::high_resolution_clock::now();
-    string changes_filename = "Data/changes.txt";
+    string changes_filename = "/mirror/project/Data/changes.txt";
     int num_changes = 0;
     vector<int> changes_data;
 
