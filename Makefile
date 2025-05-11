@@ -20,21 +20,27 @@ METIS_EXE = sequential
 # Default target
 all: prepare_data $(SERIAL_EXE) $(OMP_EXE) $(METIS_EXE)
 
-# Compile targets
+# Compile targets gprof
 $(SERIAL_EXE): $(SERIAL_SRC)
-	$(CXX) $(CXXFLAGS) -o $@ $<
+	$(CXX) $(CXXFLAGS) -pg -o $@ $<
 
 $(OMP_EXE): $(OMP_SRC)
-	$(CXX) $(CXXFLAGS) $(OMPFLAGS) -o $@ $<
+	$(CXX) $(CXXFLAGS) $(OMPFLAGS) -pg -o $@ $<
 
 $(METIS_EXE): $(METIS_SRC)
-	$(CXX) $(CXXFLAGS) -o $@ $<
+	$(CXX) $(CXXFLAGS) -pg -o $@ $<
 
 # Run all programs
 run: all
 	./$(SERIAL_EXE) $(DATA_DIR)/data.txt
+		gprof $(SERIAL_EXE) gmon.out > gprof-serial.txt
+
 	./$(OMP_EXE) $(DATA_DIR)/data.txt
+		gprof $(OMP_EXE) gmon.out > gprof-openmp.txt
+
 	./$(METIS_EXE) $(METIS_DIR)/data.graph.part.3 --adjust-indices
+		gprof $(METIS_EXE) gmon.out > gprof-sequentialMetis.txt
+
 
 # Prepare data only if needed
 prepare_data:
